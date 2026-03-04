@@ -28,11 +28,9 @@ export default function AuthBar() {
 
   async function signInGoogle() {
     await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+  provider: "google",
+  options: { redirectTo: `${window.location.origin}/auth/callback` },
+});
   }
 
   async function signOut() {
