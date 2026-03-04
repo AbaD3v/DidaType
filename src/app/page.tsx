@@ -1,5 +1,6 @@
 import TypingTest from "@/components/TypingTest";
 import ThemeBar from "@/components/ThemeBar";
+import AuthBar from "@/components/AuthBar";
 
 export default function Home() {
   return (
@@ -18,13 +19,16 @@ export default function Home() {
             </p>
           </div>
 
-          <ThemeBar />
+          <div className="flex flex-wrap items-center gap-3">
+            <ThemeBar />
+            <AuthBar />
+          </div>
           <a
-  href="/leaderboard"
-  className="px-3 py-1 rounded bg-white/10 hover:bg-white/15 text-sm"
->
-  leaderboard
-</a>
+            href="/leaderboard"
+            className="px-3 py-1 rounded bg-white/10 hover:bg-white/15 text-sm"
+          >
+            leaderboard
+          </a>
         </div>
 
         <TypingTest />
