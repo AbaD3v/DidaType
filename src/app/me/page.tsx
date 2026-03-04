@@ -18,7 +18,7 @@ type Row = {
 export default function MePage() {
   const supabase = createSupabaseBrowser();
   const [rows, setRows] = useState<Row[]>([]);
-  const [who, setWho] = useState<string>("");
+  const [who, setWho] = useState<string>("loading...");
 
   const stats = useMemo(() => {
     if (rows.length === 0) return null;
@@ -30,13 +30,11 @@ export default function MePage() {
 
   useEffect(() => {
     (async () => {
-      // 1) пробуем user_id
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id ?? null;
 
-      // 2) если нет — берём session_id (anon)
       const sessionKey = "didatype_session_id";
-      const sessionId = localStorage.getItem(sessionKey);
+      const sessionId = typeof window !== "undefined" ? localStorage.getItem(sessionKey) : null;
 
       let q = supabase
         .from("typing_results")
@@ -49,9 +47,9 @@ export default function MePage() {
         setWho(auth.user?.email ?? "signed-in user");
       } else if (sessionId) {
         q = q.eq("session_id", sessionId);
-        setWho("anon session");
+        setWho("local guest session");
       } else {
-        setWho("no session yet");
+        setWho("no data found");
         setRows([]);
         return;
       }
@@ -59,80 +57,102 @@ export default function MePage() {
       const { data } = await q;
       setRows((data as Row[]) ?? []);
     })();
-  }, []);
+  }, [supabase]);
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="text-[rgb(var(--accent))] text-sm tracking-widest uppercase">didatype</div>
-        <h1 className="text-3xl font-semibold mt-1">my stats</h1>
-        <p className="text-white/60 mt-2">{who}</p>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-4">
-          <Card title="best wpm" value={stats ? String(stats.best) : "-"} />
-          <Card title="avg wpm" value={stats ? String(stats.avg) : "-"} />
-          <Card title="avg acc" value={stats ? `${stats.avgAcc}%` : "-"} />
-          <Card title="tests" value={stats ? String(stats.total) : "0"} />
+    <main className="min-h-screen bg-[rgb(var(--bg))] text-[rgb(var(--text))] font-mono">
+      <div className="max-w-5xl mx-auto px-8 py-16">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <div className="text-[rgb(var(--sub))] text-sm tracking-[0.3em] uppercase opacity-50 mb-1">account</div>
+            <h1 className="text-4xl font-black tracking-tight">my stats</h1>
+            <p className="text-[rgb(var(--accent))] mt-2 font-bold opacity-80">{who}</p>
+          </div>
+          
+          <div className="flex gap-3">
+            <a href="/" className="px-5 py-2 rounded-xl bg-[rgb(var(--sub))]/10 hover:bg-[rgb(var(--accent))] hover:text-[rgb(var(--bg))] transition-all font-bold text-sm">
+              new test
+            </a>
+            <a href="/leaderboard" className="px-5 py-2 rounded-xl bg-[rgb(var(--sub))]/5 border border-[rgb(var(--sub))]/10 hover:border-[rgb(var(--sub))]/30 transition-all text-sm">
+              leaderboard
+            </a>
+          </div>
         </div>
 
-        <div className="mt-8 rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="border-b border-white/10 text-white/60 text-sm">
-              <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Mode</th>
-                <th className="px-4 py-3">WPM</th>
-                <th className="px-4 py-3">Acc</th>
-                <th className="px-4 py-3">Err</th>
-                <th className="px-4 py-3">Time</th>
+        {/* Stats Cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-12">
+          <StatCard title="best wpm" value={stats?.best} highlight />
+          <StatCard title="average wpm" value={stats?.avg} />
+          <StatCard title="avg accuracy" value={stats ? `${stats.avgAcc}%` : null} />
+          <StatCard title="tests taken" value={stats?.total} />
+        </div>
+
+        {/* History Table */}
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-[rgb(var(--sub))]">history</h2>
+          <span className="text-xs text-[rgb(var(--sub))] opacity-50 uppercase tracking-widest">showing last 50 runs</span>
+        </div>
+
+        <div className="rounded-2xl border border-[rgb(var(--sub))]/10 bg-black/5 overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[rgb(var(--sub))]/5 text-[rgb(var(--sub))] text-xs uppercase tracking-widest">
+                <th className="px-6 py-4 font-medium">date</th>
+                <th className="px-6 py-4 font-medium">mode</th>
+                <th className="px-6 py-4 font-medium text-[rgb(var(--accent))]">wpm</th>
+                <th className="px-6 py-4 font-medium">acc</th>
+                <th className="px-6 py-4 font-medium">err</th>
+                <th className="px-6 py-4 font-medium text-right">duration</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[rgb(var(--sub))]/5">
               {rows.slice(0, 50).map((r) => (
-                <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
-                  <td className="px-4 py-3 text-white/70">
-                    {new Date(r.created_at).toLocaleString()}
+                <tr key={r.id} className="hover:bg-[rgb(var(--sub))]/5 transition-colors group">
+                  <td className="px-6 py-4 text-[rgb(var(--sub))] text-sm">
+                    {new Date(r.created_at).toLocaleDateString()} <span className="opacity-40 ml-1">{new Date(r.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                   </td>
-                  <td className="px-4 py-3 text-white/70">
-                    {r.mode === "time"
-                      ? `time ${r.time_limit_sec ?? "-"}s`
-                      : `words ${r.words_count ?? "-"}`}
+                  <td className="px-6 py-4 text-sm text-[rgb(var(--sub))] font-medium">
+                    {r.mode === "time" ? `time ${r.time_limit_sec}s` : `words ${r.words_count}`}
                   </td>
-                  <td className="px-4 py-3 font-semibold">{r.wpm}</td>
-                  <td className="px-4 py-3">{r.accuracy}%</td>
-                  <td className="px-4 py-3">{r.errors}</td>
-                  <td className="px-4 py-3 text-white/70">{(r.duration_ms / 1000).toFixed(1)}s</td>
+                  <td className="px-6 py-4">
+                    <span className="text-xl font-bold text-[rgb(var(--text))] group-hover:text-[rgb(var(--accent))] transition-colors">{r.wpm}</span>
+                  </td>
+                  <td className="px-6 py-4 font-medium">{r.accuracy}%</td>
+                  <td className="px-6 py-4 text-[rgb(var(--error))] opacity-70">{r.errors}</td>
+                  <td className="px-6 py-4 text-[rgb(var(--sub))] text-right text-sm italic">
+                    {(r.duration_ms / 1000).toFixed(1)}s
+                  </td>
                 </tr>
               ))}
-              {rows.length === 0 ? (
+              
+              {rows.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-white/60">
-                    No results yet. Do a test first.
+                  <td colSpan={6} className="px-6 py-20 text-center">
+                    <p className="text-[rgb(var(--sub))] italic">No results found in your current session.</p>
+                    <a href="/" className="inline-block mt-4 text-[rgb(var(--accent))] hover:underline font-bold">Start typing now →</a>
                   </td>
                 </tr>
-              ) : null}
+              )}
             </tbody>
           </table>
-        </div>
-
-        <div className="mt-8 flex gap-3">
-          <a href="/" className="px-4 py-2 rounded bg-white text-black hover:opacity-90">
-            back to test
-          </a>
-          <a href="/leaderboard" className="px-4 py-2 rounded bg-white/10 hover:bg-white/15">
-            leaderboard
-          </a>
         </div>
       </div>
     </main>
   );
 }
 
-function Card({ title, value }: { title: string; value: string }) {
+function StatCard({ title, value, highlight = false }: { title: string; value: string | number | null | undefined, highlight?: boolean }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-      <div className="text-white/60 text-sm">{title}</div>
-      <div className="text-2xl font-semibold mt-2">{value}</div>
+    <div className={`rounded-2xl p-6 border transition-all duration-300 ${
+      highlight 
+        ? "border-[rgb(var(--accent))]/30 bg-[rgb(var(--accent))]/5 shadow-lg shadow-[rgb(var(--accent))]/5" 
+        : "border-[rgb(var(--sub))]/10 bg-black/10"
+    }`}>
+      <div className="text-[rgb(var(--sub))] text-xs uppercase tracking-[0.2em] mb-2 font-medium">{title}</div>
+      <div className={`text-4xl font-black ${highlight ? "text-[rgb(var(--accent))]" : "text-[rgb(var(--text))]"}`}>
+        {value ?? "-"}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,14 @@
+// src/components/AuthBar.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { createSupabaseBrowser } from "@/hooks/utils/supabase/client";
+import Link from "next/link";
+
+/**
+ * AuthBar: Polished Monkeytype-style Auth Navigation
+ * Aesthetic: Serika Dark (Minimalism, low contrast base, high contrast accents)
+ */
 
 export default function AuthBar() {
   const supabase = createSupabaseBrowser();
@@ -12,8 +19,7 @@ export default function AuthBar() {
 
     (async () => {
       const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      setEmail(data.session?.user?.email ?? null);
+      if (mounted) setEmail(data.session?.user?.email ?? null);
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -24,44 +30,54 @@ export default function AuthBar() {
       mounted = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
-  async function signInGoogle() {
+  const signInGoogle = async () => {
     await supabase.auth.signInWithOAuth({
-  provider: "google",
-  options: { redirectTo: `${window.location.origin}/auth/callback` },
-});
-  }
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
 
-  async function signOut() {
+  const signOut = async () => {
     await supabase.auth.signOut();
-  }
+  };
+
+  const btnBase = "transition-all duration-200 text-xs lowercase flex items-center gap-1.5 px-2 py-1 rounded-md";
+  const btnGhost = `${btnBase} text-[rgb(var(--sub))] hover:text-[rgb(var(--text))] hover:bg-[rgb(var(--sub)/0.1)]`;
+  const btnAccent = `${btnBase} bg-[rgb(var(--accent))] text-[rgb(var(--bg))] font-bold hover:brightness-110`;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-4 font-mono">
       {email ? (
-        <>
-          <span className="text-white/70 text-sm">{email}</span>
-          <a href="/profile" className="px-3 py-1 rounded bg-white/10 hover:bg-white/15 text-sm">
-            profile
-          </a>
-          <a href="/me" className="px-3 py-1 rounded bg-white/10 hover:bg-white/15 text-sm">
-            my stats
-          </a>
-          <button
-            type="button"
-            onClick={signOut}
-            className="px-3 py-1 rounded bg-white text-black hover:opacity-90 text-sm"
-          >
-            sign out
-          </button>
-        </>
+        <div className="flex items-center gap-3">
+          <span className="text-[rgb(var(--sub))] text-xs cursor-default">
+            {email}
+          </span>
+          
+          <nav className="flex items-center gap-1">
+            <Link href="/profile" className={btnGhost}>
+              profile
+            </Link>
+            <Link href="/me" className={btnGhost}>
+              stats
+            </Link>
+            <button
+              onClick={signOut}
+              className={btnGhost}
+            >
+              sign out
+            </button>
+          </nav>
+        </div>
       ) : (
         <button
-          type="button"
           onClick={signInGoogle}
-          className="px-3 py-1 rounded bg-white text-black hover:opacity-90 text-sm"
+          className={btnAccent}
         >
+          <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.908 3.152-1.928 4.176-1.024 1.024-2.616 2.12-5.912 2.12-5.388 0-9.712-4.36-9.712-9.712s4.324-9.712 9.712-9.712c2.928 0 5.12 1.152 6.64 2.584l2.308-2.308c-1.96-1.856-4.524-3.276-8.948-3.276-7.828 0-14.128 6.3-14.128 14.128s6.3 14.128 14.128 14.128c4.224 0 7.412-1.392 9.872-3.96 2.532-2.532 3.328-6.088 3.328-8.78 0-.84-.068-1.644-.192-2.408h-13.016z" />
+          </svg>
           sign in with google
         </button>
       )}
