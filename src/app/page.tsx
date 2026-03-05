@@ -58,9 +58,6 @@ export default function Home() {
               <a href="/about" title="Information" className="text-[rgb(var(--muted))] hover:text-[rgb(var(--text))] transition-all group">
                 <Info size={20} className="group-hover:text-[rgb(var(--accent))] transition-colors stroke-[1.25]" />
               </a>
-              <a href="/settings" title="Settings" className="text-[rgb(var(--muted))] hover:text-[rgb(var(--text))] transition-all group">
-                <Settings size={20} className="group-hover:text-[rgb(var(--accent))] transition-colors stroke-[1.25]" />
-              </a>
             </nav>
           </div>
 
@@ -78,32 +75,42 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Tactical UI / Keyboard Shortcuts */}
-        <div className="flex flex-col items-center gap-8 pb-10 select-none">
-          <div className="flex items-center gap-10 text-[13px]">
-            {/* Restart Shortcut */}
-            <div className="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-[rgb(var(--text))]/5 transition-all duration-200 cursor-pointer group">
-              <div className="flex items-center gap-2 text-[rgb(var(--text))]">
-                <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[34px] text-center font-bold">tab</kbd>
-                <span className="opacity-20 text-lg">+</span>
-                <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[48px] text-center font-bold">enter</kbd>
-              </div>
-              <span className="text-[rgb(var(--muted))] group-hover:text-[rgb(var(--text))] tracking-wide font-medium">
-                - restart test
-              </span>
-            </div>
+{/* Keyboard Shortcuts */}
+<div className="flex flex-col items-center gap-8 pb-10 select-none">
 
-            {/* Command Line Shortcut */}
-            <div className="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-[rgb(var(--text))]/5 transition-all duration-200 cursor-pointer group">
-              <div className="flex items-center gap-2">
-                <Command size={14} className="text-[rgb(var(--muted))] group-hover:text-[rgb(var(--accent))]" />
-                <kbd className="bg-[rgb(var(--muted))]/10 text-[rgb(var(--text))] px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 font-bold">esc</kbd>
-              </div>
-              <span className="text-[rgb(var(--muted))] group-hover:text-[rgb(var(--text))] tracking-wide font-medium">
-                - command line
-              </span>
-            </div>
-          </div>
+  <div className="flex flex-wrap items-center justify-center gap-8 text-[13px]">
+
+    {/* restart */}
+    <div className="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-[rgb(var(--text))]/5 transition-all duration-200 group">
+      <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[34px] text-center font-bold">tab</kbd>
+      <span className="text-[rgb(var(--muted))] opacity-50">/</span>
+      <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[34px] text-center font-bold">esc</kbd>
+      <span className="text-[rgb(var(--muted))] group-hover:text-[rgb(var(--text))] tracking-wide font-medium">
+        restart
+      </span>
+    </div>
+
+    {/* ctrl enter */}
+    <div className="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-[rgb(var(--text))]/5 transition-all duration-200 group">
+      <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[40px] text-center font-bold">ctrl</kbd>
+      <span className="opacity-20 text-lg">+</span>
+      <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[48px] text-center font-bold">enter</kbd>
+      <span className="text-[rgb(var(--muted))] group-hover:text-[rgb(var(--text))] tracking-wide font-medium">
+        restart test
+      </span>
+    </div>
+
+    {/* next word */}
+    <div className="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-[rgb(var(--text))]/5 transition-all duration-200 group">
+      <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[52px] text-center font-bold">space</kbd>
+      <span className="text-[rgb(var(--muted))] opacity-50">/</span>
+      <kbd className="bg-[rgb(var(--muted))]/10 px-2 py-0.5 rounded text-[11px] border-b-[3px] border-black/30 min-w-[48px] text-center font-bold">enter</kbd>
+      <span className="text-[rgb(var(--muted))] group-hover:text-[rgb(var(--text))] tracking-wide font-medium">
+        next word
+      </span>
+    </div>
+
+  </div>
 
           {/* Visual Legend Indicators */}
           <div className="flex items-center gap-12 opacity-15 text-[rgb(var(--muted))]">

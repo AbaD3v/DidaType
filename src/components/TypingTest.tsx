@@ -460,6 +460,25 @@ export default function TypingTest({
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (isFinished) return;
 
+    // restart shortcuts
+    if (e.key === "Tab") {
+      e.preventDefault();
+      reset();
+      return;
+    }
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      reset();
+      return;
+    }
+
+    if (e.key === "Enter" && (e.ctrlKey || isFinished)) {
+      e.preventDefault();
+      reset();
+      return;
+    }
+
     if (e.key.length === 1 || e.key === "Backspace" || e.key === " ") {
       startIfNeeded();
     }
