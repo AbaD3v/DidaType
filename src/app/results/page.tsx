@@ -29,7 +29,7 @@ export default function ResultsPage() {
   const [data, setData] = useState<Result | null>(null);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem("lastResult");
+    const raw = localStorage.getItem("lastResult");
     if (raw) setData(JSON.parse(raw));
   }, []);
 

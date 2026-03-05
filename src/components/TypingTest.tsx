@@ -265,8 +265,10 @@ export default function TypingTest({
       })
       .select("id, created_at")
       .single();
-
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error:", JSON.stringify(error, null, 2));
+      throw error;
+    }
     return data;
   }
 
@@ -291,8 +293,10 @@ export default function TypingTest({
       })
       .select("id, created_at")
       .single();
-
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error:", JSON.stringify(error, null, 2));
+      throw error;
+    }
     return data;
   }
 
@@ -369,12 +373,20 @@ export default function TypingTest({
     if (!isFinished || !state.startedAt || !state.endedAt || savedOnceRef.current) return;
     savedOnceRef.current = true;
 
-    const payload = {
+    // 1) то, что реально есть в таблице Supabase
+    const dbPayload = {
       mode: testMode,
       wpm,
       accuracy: acc,
       errors: state.errors,
       duration_ms: elapsedMs,
+      time_limit_sec: testMode === "time" ? timeLimit : null,
+      words_count: testMode === "words" ? countWords : null,
+    };
+
+    // 2) то, что нужно для /results (графики/реплей)
+    const clientPayload = {
+      ...dbPayload,
       wpmSeries,
       accSeries,
       errorSpikes,
@@ -383,23 +395,37 @@ export default function TypingTest({
       correct_chars: state.correctChars,
       incorrect_chars: state.errors,
       total_chars: state.typedChars,
-      time_limit_sec: testMode === "time" ? timeLimit : null,
-      words_count: testMode === "words" ? countWords : null,
+      wordlistLabel: WORDLISTS[wordlist]?.label ?? "english",
     };
 
     (async () => {
       try {
+        let saved: any;
+
         if (daily) {
-          const saved = await saveDailyResultToSupabase(daily.day, payload);
-          sessionStorage.setItem("lastResult", JSON.stringify({ ...payload, ...saved, day: daily.day, words }));
+          saved = await saveDailyResultToSupabase(daily.day, dbPayload);
         } else {
-          const saved = await saveResultToSupabase(payload);
-          sessionStorage.setItem("lastResult", JSON.stringify({ ...payload, ...saved, words }));
-          router.push("/results");
+          saved = await saveResultToSupabase(dbPayload);
         }
+
+        const resultData = {
+          ...clientPayload,
+          ...saved,
+          day: daily?.day ?? null,
+        };
+
+        localStorage.setItem("lastResult", JSON.stringify(resultData));
+        router.push("/results");
       } catch (e) {
-        sessionStorage.setItem("lastResult", JSON.stringify({ ...payload, words, day: daily?.day }));
-        if (!daily) router.push("/results");
+        console.error("save result error:", JSON.stringify(e, null, 2));
+
+        const fallback = {
+          ...clientPayload,
+          day: daily?.day ?? null,
+        };
+
+        localStorage.setItem("lastResult", JSON.stringify(fallback));
+        router.push("/results");
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
